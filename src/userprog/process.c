@@ -71,9 +71,9 @@ process_execute (const char *file_name)
   
   list_init(&thread_current()->children);
   if(tid != TID_ERROR){
-      if(exec->load_done->value == 1){
-      if(exec->success){
-        list_insert(&(thread_current()->children),wait_status->elem);
+      if(exec.load_done.value == 1){
+      if(exec.success){
+        list_insert(&(thread_current()->children),&exec.wait_status->elem);
       }
       else{
           tid = TID_ERROR;
@@ -109,17 +109,20 @@ static void start_process (void *exec_)
   {   
       struct  wait_status * wait_statur_ptr;
      wait_statur_ptr = malloc(sizeof(struct wait_status));
-     lock_init(wait_statur_ptr->lock);
+     lock_init(&wait_statur_ptr->lock);
+     wait_statur_ptr->exit_code = 0; //default
      wait_statur_ptr->ref_cnt = 2;
      thread_current()->tid = wait_statur_ptr->tid;
-     exec->wait_status = thread->wait_status = wait_statur_ptr;
-     sema_init(wait_statur_ptr->dead,0);
-     sema_up(exec->load_done);
+     exec->wait_status = thread_current()->wait_status = wait_statur_ptr;
+     sema_init(&wait_statur_ptr->dead,0);
+     sema_up(&exec->load_done);
      
   }
 
-  if (!success)
-    thread_exit ();
+  if (!success){
+          thread_exit ();
+
+  }
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
