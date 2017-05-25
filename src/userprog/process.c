@@ -55,6 +55,10 @@ process_execute (const char *file_name)
      Note that the file_name may contain command-line arguments
      that should not be included in the thread_name.
      ======================== */
+   char *save_ptr;
+ strlcpy (thread_name, file_name, sizeof thread_name);
+ strtok_r (thread_name, " ", &save_ptr);
+  //printf("THREAD NAME IS %s\n",thread_name);
 
   /* start_process is the function to be called at the beginning of a new thread,
        &exec is a pointer to the auxiliary information */
@@ -71,14 +75,13 @@ process_execute (const char *file_name)
   
   list_init(&thread_current()->children);
   if(tid != TID_ERROR){
-      if(exec.load_done.value == 1){
+      sema_down(&exec.load_done);
       if(exec.success){
-        list_insert(&(thread_current()->children),&exec.wait_status->elem);
+        list_push_back(&thread_current()->children,&exec.wait_status->elem);
       }
       else{
           tid = TID_ERROR;
       }
-  }
   }
   return tid;
 }
@@ -105,9 +108,9 @@ static void start_process (void *exec_)
      3. Indicate in the execution status that loading is successful.
      4. Stop the parent process from waiting for the child process to be loaded.
      ======================== */
+  struct  wait_status * wait_statur_ptr;
   if (success)
   {   
-      struct  wait_status * wait_statur_ptr;
      wait_statur_ptr = malloc(sizeof(struct wait_status));
      lock_init(&wait_statur_ptr->lock);
      wait_statur_ptr->exit_code = 0; //default
@@ -116,9 +119,7 @@ static void start_process (void *exec_)
      exec->wait_status = thread_current()->wait_status = wait_statur_ptr;
      sema_init(&wait_statur_ptr->dead,0);
      sema_up(&exec->load_done);
-     
   }
-
   if (!success){
           thread_exit ();
 
@@ -137,6 +138,13 @@ static void start_process (void *exec_)
 /* Releases one reference to CS and, if it is now unreferenced, frees it. */
 static void release_child (struct wait_status *cs)
 {
+        lock_acquire(&cs->lock);
+           cs->ref_cnt--;
+        lock_release(&cs->lock);
+        
+        if(cs->ref_cnt == 0){
+             free(cs);
+        }
 }
 
 /* Waits for thread TID to die and returns its exit status.  If
@@ -157,8 +165,20 @@ process_wait (tid_t child_tid)
       5. Call release_child().
       6. Return the exit code.
       ======================== */
-
-  return -1;
+    struct list_elem *e;
+    struct  wait_status * child ;
+ 
+  for (e = list_begin(&thread_current()->children); e != list_end(&thread_current()->children); e = list_next(e))
+  {
+    child = list_entry(e, struct wait_status, elem);
+        if(child->tid == child_tid){
+            sema_down(&child->dead);
+            break;
+        }
+    }
+    
+  release_child(child);
+  return child->exit_code;
 }
 
 /* Free the current process's resources. */
@@ -184,7 +204,20 @@ process_exit (void)
       3. Go through the child list.
       4. Release a reference to the wait_status of each child process.
       ======================== */
+  sema_up(&cur->wait_status->dead);
+  release_child(cur->wait_status);
 
+  struct  wait_status * child ; 
+  struct list_elem *e;
+  
+  for (e = list_begin(&cur->children); e != list_end(&cur->children); e = list_next(e))
+  {
+    child = list_entry(e, struct thread, elem);
+    release_child(child);
+    list_remove(e);
+    }
+       
+  
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
   pd = cur->pagedir;
