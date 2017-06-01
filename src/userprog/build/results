@@ -1,1 +1,7 @@
 pass tests/userprog/args-none
+pass tests/userprog/create-normal
+pass tests/userprog/create-empty
+pass tests/userprog/create-long
+pass tests/userprog/create-exists
+pass tests/userprog/open-normal
+pass tests/userprog/exit

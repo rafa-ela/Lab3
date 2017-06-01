@@ -213,41 +213,50 @@ static int sys_halt (void)
 /* Exit system call. */
 static int sys_exit (int exit_code)
 {
-    printf ("system call!\n");
+    thread_current()->wait_status->exit_code = exit_code;
     thread_exit ();
-    return -1;
+    return exit_code;
 }
 
 /* Exec system call. */
 static int sys_exec (const char *ufile)
 {
-    printf ("system call!\n");
-    thread_exit ();
-    return -1;
+    lock_acquire(&fs_lock);
+    char * k= copy_in_string(ufile);
+    tid_t success = process_execute(k);
+    lock_release(&fs_lock);
+    palloc_free_page(k); //free the page
+    return success;
 }
 
 /* Wait system call. */
 static int sys_wait (tid_t child)
 {
-    printf ("system call!\n");
-    thread_exit ();
-    return -1;
+    tid_t wait = process_wait(child);
+    return wait;
 }
-
+//yiming.peng@ecs.vuw.ac.nz
 /* Create system call. */
 static int sys_create (const char *ufile, unsigned initial_size)
 {
-    printf ("system call!\n");
-    thread_exit ();
-    return -1;
+    bool create;
+    char * k= copy_in_string(ufile);
+    lock_acquire(&fs_lock);
+    create= filesys_create(k,initial_size);
+    lock_release(&fs_lock);
+    palloc_free_page(k);
+    return create;
 }
 
 /* Remove system call. */
 static int sys_remove (const char *ufile)
 {
-    printf ("system call!\n");
-    thread_exit ();
-    return -1;
+    char * k= copy_in_string(ufile);
+    lock_acquire(&fs_lock);
+    bool remove = filesys_remove(k);
+    lock_release(&fs_lock);
+    palloc_free_page(k);
+    return remove;
 }
 
 /* A file descriptor, for binding a file handle to a file. */
@@ -261,9 +270,19 @@ struct file_descriptor
 /* Open system call. */
 static int sys_open (const char *ufile)
 {
-    printf ("system call!\n");
-    thread_exit ();
-    return -1;
+    char * k= copy_in_string(ufile);
+    lock_acquire(&fs_lock);
+    struct file * file_opened = filesys_open(k);
+    lock_release(&fs_lock);
+    palloc_free_page(k);
+    if(file_opened == NULL){
+        return thread_current()->next_handle;
+    }
+    struct file_descriptor * fd = malloc(sizeof(struct file_descriptor));
+    fd->file = file_opened;
+    fd->handle = thread_current()->next_handle;
+    return fd->handle;
+    
 }
 
 /* Filesize system call. */

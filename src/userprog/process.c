@@ -107,24 +107,25 @@ static void start_process (void *exec_)
      2. Properly initialize the struct wait_status.
      3. Indicate in the execution status that loading is successful.
      4. Stop the parent process from waiting for the child process to be loaded.
-     ======================== */
+     ========================  */
   struct  wait_status * wait_statur_ptr;
   if (success)
   {   
      wait_statur_ptr = malloc(sizeof(struct wait_status));
-     lock_init(&wait_statur_ptr->lock);
-     wait_statur_ptr->exit_code = 0; //default
-     wait_statur_ptr->ref_cnt = 2;
-     thread_current()->tid = wait_statur_ptr->tid;
      exec->wait_status = thread_current()->wait_status = wait_statur_ptr;
-     sema_init(&wait_statur_ptr->dead,0);
+     lock_init(&wait_statur_ptr->lock);
+     wait_statur_ptr->exit_code = -1;
+     wait_statur_ptr->ref_cnt = 2;
+     wait_statur_ptr->tid = thread_current()->tid;
+     sema_init(&wait_statur_ptr->dead, 0);
      sema_up(&exec->load_done);
   }
   if (!success){
-          thread_exit ();
-
+      thread_exit();
   }
 
+  
+  
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
      threads/intr-stubs.S).  Because intr_exit takes all of its
@@ -173,12 +174,14 @@ process_wait (tid_t child_tid)
     child = list_entry(e, struct wait_status, elem);
         if(child->tid == child_tid){
             sema_down(&child->dead);
-            break;
+            list_remove(e);
+            release_child(child);
+          return child->exit_code;
         }
     }
     
-  release_child(child);
-  return child->exit_code;
+ 
+  return -1;
 }
 
 /* Free the current process's resources. */
@@ -204,19 +207,20 @@ process_exit (void)
       3. Go through the child list.
       4. Release a reference to the wait_status of each child process.
       ======================== */
+  if(cur->wait_status != NULL){
   sema_up(&cur->wait_status->dead);
   release_child(cur->wait_status);
-
+  }
   struct  wait_status * child ; 
   struct list_elem *e;
-  
+  if(!list_empty(&cur->children)){
   for (e = list_begin(&cur->children); e != list_end(&cur->children); e = list_next(e))
   {
     child = list_entry(e, struct thread, elem);
     release_child(child);
     list_remove(e);
     }
-       
+  }       
   
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */

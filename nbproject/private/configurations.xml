@@ -348,8 +348,6 @@
           <in>main.h</in>
         </df>
         <df name="threads">
-          <df name="build">
-          </df>
           <in>flags.h</in>
           <in>init.c</in>
           <in>init.h</in>
@@ -376,6 +374,27 @@
           <in>vaddr.h</in>
         </df>
         <df name="userprog">
+          <df name="build">
+            <df name="devices">
+            </df>
+            <df name="filesys">
+            </df>
+            <df name="lib">
+              <df name="kernel">
+              </df>
+              <df name="user">
+              </df>
+            </df>
+            <df name="tests">
+              <df name="userprog">
+              </df>
+            </df>
+            <df name="threads">
+              <in>kernel.lds.s</in>
+            </df>
+            <df name="userprog">
+            </df>
+          </df>
           <in>exception.c</in>
           <in>exception.h</in>
           <in>gdt.c</in>

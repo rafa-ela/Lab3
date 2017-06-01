@@ -7,4 +7,25 @@
         <activeConfTypeElem>0</activeConfTypeElem>
         <activeConfIndexElem>0</activeConfIndexElem>
     </data>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/threads/synch.c</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/threads/thread.h</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/threads/malloc.c</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/threads/synch.h</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/filesys/filesys.h</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/userprog/syscall.c</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/filesys/filesys.c</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/lib/kernel/list.h</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/lib/string.c</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/threads/palloc.c</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/filesys/file.c</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/threads/thread.c</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/userprog/process.h</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/lib/kernel/list.c</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/userprog/process.c</file>
+            <file>file:/home/tabayrafa/Desktop/2017/NWEN301/PINTOS/pintos3/src/lib/stdbool.h</file>
+        </group>
+    </open-files>
 </project-private>
