@@ -1,5 +1,5 @@
 Copying tests/userprog/args-none to scratch partition...
-qemu -hda /tmp/Wotwr98gGG.dsk -m 4 -net none -nographic -monitor null
+qemu -hda /tmp/wqeS4oqaTD.dsk -m 4 -net none -nographic -monitor null
 PiLo hda1
 Loading.........
 Kernel command line: -q -f extract run args-none
