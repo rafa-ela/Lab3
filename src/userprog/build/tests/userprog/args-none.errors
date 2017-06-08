@@ -1,4 +1,6 @@
 qemu: /usr/pkg/lib/libcurl.so.4: no version information available (required by qemu)
-WARNING: Image format was not specified for '/tmp/wqeS4oqaTD.dsk' and probing guessed raw.
+WARNING: Image format was not specified for '/tmp/tKSnm2LoSv.dsk' and probing guessed raw.
          Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.
          Specify the 'raw' format explicitly to remove the restrictions.
+Use of uninitialized value in numeric le (<=) at /vol/courses/nwen301/pintos/bin/pintos line 828.
+qemu: terminating on signal 2

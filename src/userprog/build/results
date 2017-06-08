@@ -1,4 +1,3 @@
-pass tests/userprog/args-none
 pass tests/userprog/create-normal
 pass tests/userprog/create-empty
 pass tests/userprog/create-long
@@ -6,5 +5,9 @@ pass tests/userprog/create-exists
 pass tests/userprog/open-normal
 pass tests/userprog/open-missing
 pass tests/userprog/open-twice
-FAIL tests/userprog/read-normal
+pass tests/userprog/close-normal
+pass tests/userprog/read-normal
+pass tests/userprog/read-zero
+pass tests/userprog/write-normal
+pass tests/userprog/write-zero
 pass tests/userprog/exit

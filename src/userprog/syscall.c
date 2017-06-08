@@ -27,7 +27,8 @@ static int sys_write (int handle, void *usrc_, unsigned size);
 static int sys_seek (int handle, unsigned position);
 static int sys_tell (int handle);
 static int sys_close (int handle);
-struct file * getFileFromFileDescrp(int handle);
+struct file_descriptor * getFileFromFileDescrp(int handle);
+
 
 static void syscall_handler (struct intr_frame *);
 static void copy_in (void *, const void *, size_t);
@@ -292,11 +293,25 @@ static int sys_open (const char *ufile)
     return fd->handle;
     
 }
-
+struct file_descriptor * getFileFromFileDescrp(int handle){
+       struct file_descriptor * fd;
+    struct list_elem *e;
+    lock_acquire (&fs_lock);   
+    for (e = list_begin(&thread_current()->fds); e != list_end(&thread_current()->fds); e = list_next(e))
+    {
+            fd = list_entry(e, struct file_descriptor, elem);
+            if(fd->handle == handle){
+                lock_release (&fs_lock);
+                return fd;
+            }
+    }
+    lock_release(&fs_lock);
+    return NULL;
+}
 /* Filesize system call. */
 static int sys_filesize (int handle)
 {
-    struct file * f = getFileFromFileDescrp(handle);
+    struct file * f = getFileFromFileDescrp(handle)->file;
     if(f == NULL) return -1;
     lock_acquire(&fs_lock);
     int length = file_length(f);
@@ -331,7 +346,7 @@ static int sys_read (int handle, void *udst_, unsigned size)
   }
   else
   {
-    struct file * f =  getFileFromFileDescrp(handle);
+    struct file * f =  getFileFromFileDescrp(handle)->file;
     if (f == NULL){return -1;}
     lock_acquire (&fs_lock);
     while (size > 0)
@@ -339,8 +354,8 @@ static int sys_read (int handle, void *udst_, unsigned size)
 
       /* How many bytes to write to this page? */
       size_t page_left = PGSIZE - pg_ofs (udst);
-      size_t write_amt = size < page_left ? size : page_left;
-      off_t retval;
+      size_t read_amt = size < page_left ? size : page_left; //the amount of "page" you are reading 
+      off_t retval; //stores the position in the file. 
 
       /* Check that we can touch this user page. */
       if (!verify_user (udst))
@@ -349,57 +364,30 @@ static int sys_read (int handle, void *udst_, unsigned size)
           thread_exit ();
       }
      
-        retval= file_read(f,udst,write_amt);
-        if(retval<0){
-            if(bytes_read == 0){
-                bytes_read = -1;
-            }
-            break;
-        }
-          bytes_read += retval;
-          
-          if(retval != (off_t) write_amt){
-              break;
-          }  
-          
+        retval= file_read(f,udst,read_amt);   
+        bytes_read += retval;
+   
       udst += retval;
       size -= retval;
   }
-  lock_release(&fs_lock);
+        lock_release(&fs_lock);
   }
 
   return bytes_read;
 }
-
-struct file * getFileFromFileDescrp(int handle){
-    lock_acquire (&fs_lock);
-    struct file_descriptor * fd;
-    struct list_elem *e;
-    
-    for (e = list_begin(&thread_current()->fds); e != list_end(&thread_current()->fds); e = list_next(e))
-    {
-            fd = list_entry(e, struct file_descriptor, elem);
-            if(fd->handle == handle){
-                lock_release (&fs_lock);
-                return fd->file;
-            }
-    }
-    lock_release(&fs_lock);
-    return NULL;
-}
-
 
 /* Write system call. */
 static int sys_write (int handle, void *usrc_, unsigned size)
 {
   uint8_t *usrc = usrc_;
   int bytes_written = 0;
+  struct file * file;
 
   /* Lookup up file descriptor. */
   if (handle != STDOUT_FILENO)
   {
-      printf ("system call!\n");
-      thread_exit ();
+      file = getFileFromFileDescrp(handle)->file;
+     
   }
 
   lock_acquire (&fs_lock);
@@ -417,11 +405,15 @@ static int sys_write (int handle, void *usrc_, unsigned size)
           thread_exit ();
       }
 
-     
+      if(handle == STDOUT_FILENO){
       putbuf (usrc, write_amt);
       retval = write_amt;
+    
+      }
+      else{
+      retval = file_write(file,usrc,write_amt);
+      }
       bytes_written += retval;
-
       /* Advance. */
       usrc += retval;
       size -= retval;
@@ -434,25 +426,30 @@ static int sys_write (int handle, void *usrc_, unsigned size)
 /* Seek system call. */
 static int sys_seek (int handle, unsigned position)
 {
-    printf ("system call!\n");
-    thread_exit ();
-    return -1;
+   struct file_descriptor *fd = getFileFromFileDescrp(handle);
+      lock_acquire (&fs_lock);
+      file_seek(fd->file,position);
+      lock_release (&fs_lock);
 }
 
 /* Tell system call. */
 static int sys_tell (int handle)
 {
-    printf ("system call!\n");
-    thread_exit ();
-    return -1;
+     struct file_descriptor *fd = getFileFromFileDescrp(handle);
+      lock_acquire (&fs_lock);
+      file_tell(fd->file);
+      lock_release (&fs_lock);
 }
 
 /* Close system call. */
 static int sys_close (int handle)
 {
-    printf ("system call!\n");
-    thread_exit ();
-    return -1;
+    struct file_descriptor *fd = getFileFromFileDescrp(handle);
+    lock_acquire (&fs_lock);
+      file_close(fd->file);
+      lock_release (&fs_lock);
+      free(fd);
+
 }
 
 /* On thread exit, close all open files. */
